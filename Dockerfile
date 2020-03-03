@@ -9,9 +9,6 @@ LABEL maintainer="Leonardo Algeri"
 # Set the Current Working Directory inside the container
 WORKDIR /app
 
-# Copy Form directory
-ADD form ./form
-
 # Copy go mod and sum files
 COPY main.go ./
 
