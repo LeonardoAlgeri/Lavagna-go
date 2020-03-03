@@ -12,8 +12,8 @@ WORKDIR /app
 # Copy go mod and sum files
 COPY main.go ./
 
-# Download all dependencies. Dependencies will be cached if the go.mod and go.sum files are not changed
-RUN go get -u github.com/go-sql-driver/mysql
+# Download all dependencies.
+RUN go get
 
 # Copy the source from the current directory to the Working Directory inside the container
 COPY . .
