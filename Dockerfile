@@ -7,7 +7,7 @@ FROM golang:latest
 LABEL maintainer="Leonardo Algeri"
 
 # Set the Current Working Directory inside the container
-WORKDIR /app
+WORKDIR /go/src
 
 # Copy go mod and sum files
 COPY main.go ./
