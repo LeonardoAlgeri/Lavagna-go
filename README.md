@@ -1,1 +1,1 @@
-"# Lavagna-go" 
+# Lavagna-go
