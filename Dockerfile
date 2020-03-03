@@ -7,13 +7,13 @@ FROM golang:latest
 LABEL maintainer="Leonardo Algeri"
 
 # Set the Current Working Directory inside the container
-WORKDIR /go/src
+WORKDIR /app
 
 # Copy go mod and sum files
 COPY main.go ./
 
 # Download all dependencies.
-RUN go get
+RUN go get -u github.com/go-sql-driver/mysql
 
 # Copy the source from the current directory to the Working Directory inside the container
 COPY . .
