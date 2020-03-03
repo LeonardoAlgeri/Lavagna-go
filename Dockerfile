@@ -13,7 +13,7 @@ WORKDIR /app
 ADD form ./form
 
 # Copy go mod and sum files
-COPY main.mod ./
+COPY main.go ./
 
 # Download all dependencies. Dependencies will be cached if the go.mod and go.sum files are not changed
 RUN go get -u github.com/go-sql-driver/mysql
