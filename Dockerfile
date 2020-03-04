@@ -13,7 +13,7 @@ WORKDIR /app
 COPY main.go ./
 
 # Download all dependencies.
-RUN go get -u github.com/go-sql-driver/mysql
+RUN go get -u github.com/go-sql-driver/mysql github.com/gorilla/mux
 
 # Copy the source from the current directory to the Working Directory inside the container
 COPY . .

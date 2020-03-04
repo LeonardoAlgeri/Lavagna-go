@@ -2,17 +2,19 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
-	"text/template"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/gorilla/mux"
 )
 
-type Lavagna struct {
-	Id        int
-	Messaggio string
+type event struct {
+	ID        int    `json:"id"`
+	Messaggio string `json:"messaggio"`
 }
 
 func dbConn() (db *sql.DB) {
@@ -28,16 +30,16 @@ func dbConn() (db *sql.DB) {
 	return db
 }
 
-var tmpl = template.Must(template.ParseGlob("form/*"))
+var messaggi []event
 
-func Index(w http.ResponseWriter, r *http.Request) {
+func getData() {
 	db := dbConn()
-	selDB, err := db.Query("SELECT * FROM messaggi ORDER BY id DESC")
+	selDB, err := db.Query("SELECT * FROM messaggi")
 	if err != nil {
 		panic(err.Error())
 	}
-	lav := Lavagna{}
-	res := []Lavagna{}
+
+	messaggi = nil
 	for selDB.Next() {
 		var id int
 		var messaggio string
@@ -45,114 +47,53 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err.Error())
 		}
-		lav.Id = id
-		lav.Messaggio = messaggio
-		res = append(res, lav)
+		a := event{ID: id, Messaggio: messaggio}
+		messaggi = append(messaggi, a)
+
 	}
-	tmpl.ExecuteTemplate(w, "Index", res)
 	defer db.Close()
+	fmt.Println("Caricato")
 }
 
-func Show(w http.ResponseWriter, r *http.Request) {
-	db := dbConn()
-	nId := r.URL.Query().Get("id")
-	selDB, err := db.Query("SELECT * FROM messaggi WHERE id=?", nId)
-	if err != nil {
-		panic(err.Error())
-	}
-	lav := Lavagna{}
-	for selDB.Next() {
-		var id int
-		var messaggio string
-		err = selDB.Scan(&id, &messaggio)
-		if err != nil {
-			panic(err.Error())
-		}
-		lav.Id = id
-		lav.Messaggio = messaggio
-	}
-	tmpl.ExecuteTemplate(w, "Show", lav)
-	defer db.Close()
+func homeLink(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Lavagna GO API\n")
 }
 
-func New(w http.ResponseWriter, r *http.Request) {
-	tmpl.ExecuteTemplate(w, "New", nil)
-}
-
-func Edit(w http.ResponseWriter, r *http.Request) {
-	db := dbConn()
-	nId := r.URL.Query().Get("id")
-	selDB, err := db.Query("SELECT * FROM messaggi WHERE id=?", nId)
-	if err != nil {
-		panic(err.Error())
-	}
-	lav := Lavagna{}
-	for selDB.Next() {
-		var id int
-		var messaggio string
-		err = selDB.Scan(&id, &messaggio)
-		if err != nil {
-			panic(err.Error())
-		}
-		lav.Id = id
-		lav.Messaggio = messaggio
-	}
-	tmpl.ExecuteTemplate(w, "Edit", lav)
-	defer db.Close()
-}
-
-func Insert(w http.ResponseWriter, r *http.Request) {
-	db := dbConn()
+func add(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
-		messaggio := r.FormValue("messaggio")
+		err := r.ParseForm()
+		if err != nil {
+			panic(err)
+		}
+
+		messaggio := r.Form.Get("messaggio")
+		w.WriteHeader(http.StatusCreated)
+		json.NewEncoder(w).Encode("Dati ottenuti")
+
+		db := dbConn()
 		insForm, err := db.Prepare("INSERT INTO messaggi(messaggio) VALUE(?)")
 		if err != nil {
 			panic(err.Error())
 		}
 		insForm.Exec(messaggio)
 		log.Println("INSERT: messaggio: " + messaggio)
+
+		defer db.Close()
+
+		getData()
+
 	}
-	defer db.Close()
-	http.Redirect(w, r, "/", 301)
 }
 
-func Update(w http.ResponseWriter, r *http.Request) {
-	db := dbConn()
-	if r.Method == "POST" {
-		messaggio := r.FormValue("messaggio")
-		id := r.FormValue("uid")
-		insForm, err := db.Prepare("UPDATE messaggi SET messaggio=? WHERE id=?")
-		if err != nil {
-			panic(err.Error())
-		}
-		insForm.Exec(messaggio, id)
-		log.Println("UPDATE: Messaggio: " + messaggio)
-	}
-	defer db.Close()
-	http.Redirect(w, r, "/", 301)
-}
-
-func Delete(w http.ResponseWriter, r *http.Request) {
-	db := dbConn()
-	emp := r.URL.Query().Get("id")
-	delForm, err := db.Prepare("DELETE FROM messaggi WHERE id=?")
-	if err != nil {
-		panic(err.Error())
-	}
-	delForm.Exec(emp)
-	log.Println("DELETE")
-	defer db.Close()
-	http.Redirect(w, r, "/", 301)
+func getAll(w http.ResponseWriter, r *http.Request) {
+	json.NewEncoder(w).Encode(messaggi)
 }
 
 func main() {
-	log.Println("Server started on: http://localhost:8080")
-	http.HandleFunc("/", Index)
-	http.HandleFunc("/show", Show)
-	http.HandleFunc("/new", New)
-	http.HandleFunc("/edit", Edit)
-	http.HandleFunc("/insert", Insert)
-	http.HandleFunc("/update", Update)
-	http.HandleFunc("/delete", Delete)
-	http.ListenAndServe(":8080", nil)
+	getData()
+	router := mux.NewRouter().StrictSlash(true)
+	router.HandleFunc("/", homeLink)
+	router.HandleFunc("/add", add).Methods("POST")
+	router.HandleFunc("/all", getAll).Methods("GET")
+	log.Fatal(http.ListenAndServe(":8080", router))
 }
