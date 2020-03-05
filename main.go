@@ -96,7 +96,12 @@ func add(w http.ResponseWriter, r *http.Request) {
 }
 
 func getAll(w http.ResponseWriter, r *http.Request) {
-	json.NewEncoder(w).Encode(messaggi)
+	if messaggi == nil {
+		json.NewEncoder(w).Encode("Dati non disponibili!")
+		json.NewEncoder(w).Encode("Aggiungili con /add")
+	} else {
+		json.NewEncoder(w).Encode(messaggi)
+	}
 }
 
 func main() {
