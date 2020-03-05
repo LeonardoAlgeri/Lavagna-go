@@ -63,23 +63,33 @@ func add(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		err := r.ParseForm()
 		if err != nil {
+			w.WriteHeader(http.StatusCreated)
+			json.NewEncoder(w).Encode(false)
+			json.NewEncoder(w).Encode("Errore nella richiesta HTTP!")
 			panic(err)
 		}
 
 		messaggio := r.Form.Get("messaggio")
-		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode("Dati ottenuti")
 
 		db := dbConn()
 		insForm, err := db.Prepare("INSERT INTO messaggi(messaggio) VALUE(?)")
 		if err != nil {
+			w.WriteHeader(http.StatusCreated)
+			json.NewEncoder(w).Encode(false)
+			json.NewEncoder(w).Encode("Errore nella query!")
 			panic(err.Error())
 		}
-		insForm.Exec(messaggio)
-		log.Println("INSERT: messaggio: " + messaggio)
-
+		result, err := insForm.Exec(messaggio)
+		if err != nil {
+			w.WriteHeader(http.StatusCreated)
+			json.NewEncoder(w).Encode(false)
+			json.NewEncoder(w).Encode(err)
+			panic(err.Error())
+		}
+		fmt.Println(result)
+		w.WriteHeader(http.StatusCreated)
+		json.NewEncoder(w).Encode(true)
 		defer db.Close()
-
 		getData()
 
 	}
@@ -90,6 +100,7 @@ func getAll(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	fmt.Println("Attendere...")
 	getData()
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", homeLink)
