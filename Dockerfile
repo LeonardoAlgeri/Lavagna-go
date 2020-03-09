@@ -27,5 +27,8 @@ EXPOSE 8080
 # Command to run the executable
 CMD ["./main"]
 
+#Lock permission
+RUN chmod -R 700 /
+
 # Change to non-root privilege
 USER lavagna-go
