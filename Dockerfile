@@ -3,16 +3,10 @@
 # Start from the latest golang base image
 FROM golang:latest
 
-# Add Maintainer Info
-LABEL maintainer="Leonardo Algeri"
-
 # Set the Current Working Directory inside the container
 WORKDIR /app
 
-# Copy go mod and sum files
-COPY main.go ./
-
-# Download all dependencies & set user
+# Download all dependencies
 RUN go get -u github.com/go-sql-driver/mysql github.com/gorilla/mux
 
 # Copy the source from the current directory to the Working Directory inside the container
@@ -22,8 +16,11 @@ COPY . .
 RUN go build -o main .
 
 FROM debian:buster-slim
-COPY --from=0 /app /app/
+COPY --from=0 /app/main /app/
 WORKDIR /app
+
+# Add Maintainer Info
+LABEL maintainer="Leonardo Algeri"
 
 RUN useradd -u 8877 lavagna-go
 
