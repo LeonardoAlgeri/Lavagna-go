@@ -23,6 +23,8 @@ RUN go build -o main .
 
 FROM debian:buster-slim
 COPY --from=0 /app /app/
+WORKDIR /app
+
 RUN useradd -u 8877 lavagna-go
 
 # Expose port 8080 to the outside world
