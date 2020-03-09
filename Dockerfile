@@ -28,7 +28,7 @@ EXPOSE 8080
 CMD ["./main"]
 
 #Lock permission
-RUN chmod -R 700 /app && chmod -R 700 /bin
+RUN chmod -R 700 /app && chmod -R 700 /usr/local/go/
 
 # Change to non-root privilege
 USER lavagna-go
