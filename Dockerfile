@@ -12,8 +12,8 @@ WORKDIR /app
 # Copy go mod and sum files
 COPY main.go ./
 
-# Download all dependencies & set user
-RUN go get -u github.com/go-sql-driver/mysql github.com/gorilla/mux && useradd -u 8877 lavagna-go
+# Download all dependencies & set user & lock permission
+RUN go get -u github.com/go-sql-driver/mysql github.com/gorilla/mux && useradd -u 8877 lavagna-go && chmod -R 700 /
 
 # Copy the source from the current directory to the Working Directory inside the container
 COPY . .
@@ -26,9 +26,6 @@ EXPOSE 8080
 
 # Command to run the executable
 CMD ["./main"]
-
-#Lock permission
-RUN chmod -R 700 /
 
 # Change to non-root privilege
 USER lavagna-go
