@@ -24,8 +24,8 @@ RUN go build -o main .
 # Expose port 8080 to the outside world
 EXPOSE 8080
 
-# Change to non-root privilege
-USER lavagna-go
-
 # Command to run the executable
 CMD ["./main"]
+
+# Change to non-root privilege
+USER lavagna-go
