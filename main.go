@@ -102,6 +102,7 @@ func getAll(w http.ResponseWriter, r *http.Request) {
 	} else {
 		json.NewEncoder(w).Encode(messaggi)
 	}
+	getData()
 }
 
 func main() {
