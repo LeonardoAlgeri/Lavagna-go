@@ -13,7 +13,7 @@ WORKDIR /app
 COPY main.go ./
 
 # Download all dependencies & set user
-RUN go get -u github.com/go-sql-driver/mysql github.com/gorilla/mux && useradd -u 8877 lavagna-go
+RUN go get -u github.com/go-sql-driver/mysql github.com/gorilla/mux
 
 # Copy the source from the current directory to the Working Directory inside the container
 COPY . .
@@ -21,14 +21,14 @@ COPY . .
 # Build the Go app
 RUN go build -o main .
 
+FROM debian:buster-slim
+COPY --from=0 /app /app/
+
 # Expose port 8080 to the outside world
 EXPOSE 8080
 
 # Command to run the executable
 CMD ["./main"]
-
-#Lock permission
-RUN chmod -R 700 /app && chmod -R 700 /usr/local/go/
 
 # Change to non-root privilege
 USER lavagna-go
