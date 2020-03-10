@@ -32,5 +32,4 @@ build/
 
 ### GO ###
 *.exe
-github.com
 main
