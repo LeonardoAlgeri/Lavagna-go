@@ -6,14 +6,11 @@ FROM golang:latest
 # Set the Current Working Directory inside the container
 WORKDIR /app
 
-# Download all dependencies
-RUN go get -u github.com/go-sql-driver/mysql github.com/gorilla/mux
-
 # Copy the source from the current directory to the Working Directory inside the container
 COPY . .
 
 # Build the Go app
-RUN go build -o main .
+RUN go build -mod vendor -o main .
 
 FROM debian:buster-slim
 COPY --from=0 /app/main /app/
